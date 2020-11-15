@@ -18,7 +18,6 @@ class Application:
         self.player = Player('Player1', self.SCREEN_WIDTH/2, self.SCREEN_WIDTH/2)
         Blob.generate_blobs(20)
         Application.blob_list = Blob.blob_list
-        print(len(Application.blob_list))
         
     def start(self):
         pygame.init()
@@ -37,6 +36,7 @@ class Application:
         self.draw_grid()
         self.player.draw(self.window, self.font)
         Blob.draw(self.window)
+        self.draw_score()
         pygame.display.flip()
         
     def shut_down(self):
@@ -47,6 +47,30 @@ class Application:
         Blob.check_blob_numbers()
 
     def draw_grid(self):
+        line_colour = (230,240,240)
+        for y in range(0, Application.SCREEN_HEIGHT, 25):
+            pygame.draw.line(self.window, line_colour, (0, y), (Application.SCREEN_WIDTH, y), width = 3)
+        
+        for x in range(0, Application.SCREEN_WIDTH, 25):
+            pygame.draw.line(self.window, line_colour, (x, 0), (x, Application.SCREEN_HEIGHT), width = 3)
+
+    def draw_score(self):
+        transparent_rect = pygame.Surface((95,25), pygame.SRCALPHA) 
+        transparent_rect.fill((50,50,50,80))
+        message = "Score: " + str(int(self.player.score)) + "  "
+        w, h = self.font.size(message)
+        self.window.blit(pygame.transform.scale(transparent_rect, (w, h)), (8, Application.SCREEN_HEIGHT - 30))
+        self.window.blit(self.font.render(message, True, (255,255,255)), (10, Application.SCREEN_HEIGHT - 30))
+
+class Camera:
+    def __init__(self):
+        self.x = 0
+        self.y = 0
+        self.width = Application.SCREEN_WIDTH
+        self.height = Application.SCREEN_HEIGHT
+        self.zoom = 0.5
+
+    def update(self):
         pass
 
 class Vector2:
@@ -75,7 +99,7 @@ class Blob:
     @classmethod
     def check_blob_numbers(cls):
         if len(Blob.blob_list) < 15:
-            cls.generate_blobs(5)
+            cls.generate_blobs(7)
 
 
 class Player:
@@ -83,8 +107,8 @@ class Player:
         self.name = name
         self.vec2 = Vector2(x, y)
         self.size = 20 #default size players start with is 15
-        self.speed = 0.1
-        self.points = 0
+        self.speed = 0.18
+        self.score = 0
 
     def update(self):
         self.move()
@@ -113,12 +137,17 @@ class Player:
         text = font.render(self.name, True, WHITE)
         text_rect = text.get_rect(center=(self.vec2.x, self.vec2.y))
         window.blit(text, text_rect)
-
+        # Draw score
+        
     def check_collision_with_blob(self):
         for blob in Blob.blob_list:
             if (self.get_distance(self.vec2, blob.vec2)) < self.size + (blob.size/2):
                 self.size += 0.5
+                self.speed -= 0.001
+                self.score += 1
                 Blob.blob_list.remove(blob)
+                print("[Speed]: {speed} [Size]: {size} [Score]: {score}".format(speed=self.speed, size=self.size, score = self.score)) 
+
             
     def get_distance(self, pos1: 'Vector2', pos2: 'Vector2') -> float:
         diff_x = math.fabs(pos1.x - pos2.x)
