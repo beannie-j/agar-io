@@ -48,7 +48,7 @@ class Application:
 
     def draw_grid(self):
         pass
-    
+
 class Vector2:
     def __init__(self, x: 'int', y: 'int'):
         self.x = x
@@ -112,12 +112,11 @@ class Player:
         pygame.draw.circle(window, BLUE, (self.vec2.x, self.vec2.y), self.size)
         text = font.render(self.name, True, WHITE)
         text_rect = text.get_rect(center=(self.vec2.x, self.vec2.y))
-        #window.blit(text, (self.vec2.x - self.size / 2, self.vec2.y - self.size / 2))
         window.blit(text, text_rect)
 
     def check_collision_with_blob(self):
         for blob in Blob.blob_list:
-            if (self.get_distance(self.vec2, blob.vec2)) < self.size / 2:
+            if (self.get_distance(self.vec2, blob.vec2)) < self.size + (blob.size/2):
                 self.size += 0.5
                 Blob.blob_list.remove(blob)
             
