@@ -21,14 +21,21 @@ class Blob:
         Application.blob_list.append(self)
 
     @classmethod
-    def draw(cls, window: pygame.Surface):
+    def draw(cls, window: pygame.Surface, camera):
+        view = camera.get_view()
         for blob in Application.blob_list:
-            pygame.draw.circle(window, blob.colour, (blob.vec2.x, blob.vec2.y), blob.size)
+            pygame.draw.circle(window, blob.colour, (blob.vec2.x + view.x, blob.vec2.y + view.y), blob.size * camera.zoom)
 
     @classmethod
-    def generate_blobs(cls, number_of_blobs: int):
+    def generate_blobs(cls, number_of_blobs: int, origin: Vector2):
+        left = int(origin.x)
+        right = int(origin.x + Application.WINDOW_WIDTH)
+        top = int(origin.y)
+        bottom = int(origin.y + Application.WINDOW_HEIGHT)
+        print(f'{left} -> {right}')
+        print(f'{top} -> {bottom}')
         for i in range(number_of_blobs):
-            blob = Blob(random.randrange(0, Application.WINDOW_WIDTH), random.randrange(0, Application.WINDOW_HEIGHT))
+            blob = Blob(random.randrange(left, right), random.randrange(top, bottom))
     
     @classmethod
     def check_blob_numbers(cls):
@@ -45,11 +52,12 @@ class Application:
 
         self.name = name
         self.is_running = is_running
-        self.player = Player('Player1', int(self.WINDOW_WIDTH/2), int(self.WINDOW_WIDTH/2))
-        Blob.generate_blobs(30)
+        self.player = Player('Player1', int(self.WINDOW_WIDTH/2), int(self.WINDOW_HEIGHT/2))
         self.camera = Camera(0, 0)
         self.map = Map()
         
+        Blob.generate_blobs(30, self.camera.pos)
+
     def start(self):
         pygame.init()
         self.window = pygame.display.set_mode((self.WINDOW_WIDTH, self.WINDOW_HEIGHT)) #<class 'pygame.Surface'>
@@ -65,9 +73,9 @@ class Application:
     def draw(self):
         self.window.fill((242, 251, 255)) #beige
         self.draw_grid()
-        self.player.draw(self.window, self.font)
-        Blob.draw(self.window)
-        self.camera.draw(self.window)
+        self.player.draw(self.window, self.font, self.camera)
+        Blob.draw(self.window, self.camera)
+        #self.camera.draw(self.window)
 
         pygame.display.flip()
         
@@ -76,8 +84,10 @@ class Application:
 
     def update(self):
         self.player.update()
-        Blob.check_blob_numbers()
         self.camera.update(self.player)
+
+        if len(Application.blob_list) < 25:
+            Blob.generate_blobs(7, self.camera.pos)
 
     def draw_grid(self):
         line_colour = (230,240,240)
@@ -86,7 +96,6 @@ class Application:
         
         for x in range(0, Application.WINDOW_WIDTH, 25):
             pygame.draw.line(self.window, line_colour, (x, 0), (x, Application.WINDOW_HEIGHT), width = 3)
-
 
 
 class Player:
@@ -105,10 +114,15 @@ class Player:
         mx, my = pygame.mouse.get_pos()
         toMouse = Vector2(mx, my)
 
-        toMouse.x = mx - self.vec2.x
-        toMouse.y = my - self.vec2.y
+        #toMouse.x = mx - self.vec2.x
+        #toMouse.y = my - self.vec2.y
+
+        toMouse.x = mx - Application.WINDOW_WIDTH / 2
+        toMouse.y = my - Application.WINDOW_HEIGHT / 2
 
         distance_to_mouse = math.sqrt(toMouse.x * toMouse.x + toMouse.y * toMouse.y)
+        if (distance_to_mouse == 0.0):
+            distance_to_mouse = 0.1
 
         toMouse.x = toMouse.x / distance_to_mouse
         toMouse.y = toMouse.y / distance_to_mouse
@@ -119,10 +133,11 @@ class Player:
         self.vec2.x += toMouse.x
         self.vec2.y += toMouse.y
 
-    def draw(self, window: pygame.Surface, font: pygame.font.Font):
-        pygame.draw.circle(window, BLUE, (self.vec2.x, self.vec2.y), self.size)
+    def draw(self, window: pygame.Surface, font: pygame.font.Font, camera):
+        view = camera.get_view()
+        pygame.draw.circle(window, BLUE, (self.vec2.x + view.x, self.vec2.y + view.y), self.size * camera.zoom)
         text = font.render(self.name, True, WHITE)
-        text_rect = text.get_rect(center=(self.vec2.x, self.vec2.y))
+        text_rect = text.get_rect(center=(self.vec2.x + view.x, self.vec2.y + view.y))
         window.blit(text, text_rect)
         # Draw score
         self.draw_score(window, font)
@@ -166,15 +181,19 @@ class Map:
 
 class Camera:
     def __init__(self, x: int, y: int):
-        self.zoom = 0.45
+        self.zoom = 1.0
         self.pos = Vector2(x, y)
         self.width = Application.WINDOW_WIDTH * self.zoom
         self.height = Application.WINDOW_HEIGHT * self.zoom
         self.view_point_rect = pygame.Rect(self.pos.x, self.pos.y, self.width, self.height)
 
     def update(self, player: Player): #limit player move within camera size
-        self.pos = player.vec2
-        self.view_point_rect = pygame.Rect(self.pos.x - self.width / 2, self.pos.y - self.height / 2, self.width, self.height)
+        self.pos = Vector2(player.vec2.x - Application.WINDOW_WIDTH / 2, player.vec2.y - Application.WINDOW_HEIGHT / 2)
+       # self.view_point_rect = pygame.Rect(self.pos.x - self.width / 2, self.pos.y - self.height / 2, self.width, self.height)
 
     def draw(self, window: pygame.Surface):
-        pygame.draw.rect(window, RED, self.view_point_rect, width = 3)
+        pass
+        #pygame.draw.rect(window, RED, self.view_point_rect, width = 3)
+
+    def get_view(self) -> Vector2:
+        return Vector2(-self.pos.x, -self.pos.y)

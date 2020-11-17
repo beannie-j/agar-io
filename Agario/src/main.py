@@ -15,10 +15,9 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     application.shut_down()
-                
+
+        application.update()  
         application.draw()
-        application.update()
-    
     pygame.quit()
 
 if __name__=="__main__":
