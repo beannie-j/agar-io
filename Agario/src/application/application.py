@@ -14,16 +14,15 @@ class Vector2:
         self.y = y
 
 class Blob:
-    blob_list = [] # how to add typing here
     def __init__(self, x: int, y: int):
         self.vec2 = Vector2(x, y)
         self.colour = BLOB_COLOURS[random.randrange(0, len(BLOB_COLOURS) - 1)]
         self.size = 9
-        Blob.blob_list.append(self)
+        Application.blob_list.append(self)
 
     @classmethod
     def draw(cls, window: pygame.Surface):
-        for blob in Blob.blob_list:
+        for blob in Application.blob_list:
             pygame.draw.circle(window, blob.colour, (blob.vec2.x, blob.vec2.y), blob.size)
 
     @classmethod
@@ -33,7 +32,7 @@ class Blob:
     
     @classmethod
     def check_blob_numbers(cls):
-        if len(Blob.blob_list) < 25:
+        if len(Application.blob_list) < 25:
             cls.generate_blobs(7)
 
 class Application:
@@ -48,7 +47,6 @@ class Application:
         self.is_running = is_running
         self.player = Player('Player1', int(self.WINDOW_WIDTH/2), int(self.WINDOW_WIDTH/2))
         Blob.generate_blobs(30)
-        Application.blob_list = Blob.blob_list
         self.camera = Camera(0, 0)
         self.map = Map()
         
@@ -89,6 +87,8 @@ class Application:
         for x in range(0, Application.WINDOW_WIDTH, 25):
             pygame.draw.line(self.window, line_colour, (x, 0), (x, Application.WINDOW_HEIGHT), width = 3)
 
+
+
 class Player:
     def __init__(self, name: str, x: int, y: int):
         self.name = name
@@ -128,12 +128,12 @@ class Player:
         self.draw_score(window, font)
         
     def check_collision_with_blob(self):
-        for blob in Blob.blob_list:
+        for blob in Application.blob_list:
             if (self.get_distance(self.vec2, blob.vec2)) < self.size + (blob.size/2):
                 self.size += 0.5
                 self.speed -= 0.001
                 self.score += 1
-                Blob.blob_list.remove(blob)
+                Application.blob_list.remove(blob)
                 print("[Speed]: {speed} [Size]: {size} [Score]: {score}".format(speed=self.speed, size=self.size, score = self.score)) 
            
     def get_distance(self, pos1: Vector2, pos2: Vector2) -> float:
