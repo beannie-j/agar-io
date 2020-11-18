@@ -64,6 +64,8 @@ This is an Agar IO game replica built with Python and PyGame
 
 
 ![](https://i.gyazo.com/99d2b0cd2d6cf8dddd069cb01bdb4afa.gif)
+![](https://i.gyazo.com/60c2ee56752cc91c38a41c5556193c92.gif)
+
 
 
 
