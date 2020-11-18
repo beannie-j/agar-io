@@ -7,6 +7,7 @@ FPS = 60
 
 def main():
     application.start()
+    pause = False
     while application.is_running:
         clock.tick(FPS)
         for event in pygame.event.get():
@@ -15,9 +16,13 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     application.shut_down()
-
-        application.update()  
-        application.draw()
+                if event.key == pygame.K_p:
+                    pause = True
+                if event.key == pygame.K_r:
+                    pause = False
+        if pause == False:
+            application.update()  
+            application.draw()
     pygame.quit()
 
 if __name__=="__main__":
